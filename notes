@@ -1,0 +1,45 @@
+GOAL: chat server+client
+
+
+session server:
+	-has NAME passed from coordinator.
+	-talks to clients via TCP
+	-created by coordinator
+	-operations:
+		Join
+		Submit MSG
+		Get Next MSG_ID
+		Get All MSG_ID
+		Exit
+	-Submit: MSG is a sequence of characters terminated by 0x0d
+	-Get Next: MSG_ID is the integer identifier of the last message read. return message MSG_ID + 1 if it exists.
+	-Get All: return all messages s.t. message id > MSG_ID.
+	-uses TCP socket L passed by coordinator to listen for join commands
+	-join by a client causes a new TCP socket C to listen for S, GN, GA, E commands
+	-maintains a chat history.
+	-calls coodinator.terminate NAME after 1 minute of idle clients.
+		
+
+coordinator:
+	-starts by printing port number on stdout
+	-talks to clients via UDP
+	-creates session servers
+	-operations:
+		Start NAME
+		Find NAME
+		Terminate NAME
+	-Start: print error if  session with NAME is already open. otherwise, create a TCP socket and fork/exec a session server to manage the session
+	-Find: check db of sessions for session NAME. if found, return the address of that session server.
+	-Terminate: terminate session NAME. can only be invoked by the sesson server that owns NAME.
+		
+
+client:
+	-called with ADDR PORT of server
+	-waits for commands, prompts for parameters
+	-operations:
+		Start NAME
+		Join NAME
+		Submit MSG
+		Get Next MSG_ID
+		Get All MSG_ID
+		Exit
