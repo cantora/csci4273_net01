@@ -38,7 +38,7 @@ $(BUILD)/%.o: src/%.cc
 $(BUILD)/test/%.o: test/%.cc 
 	$(CXX_CMD) $(DEP_FLAGS) $(BOOST_TEST_FLAGS) $(BOOST_TEST_INCLUDE) -c $< -o $@
 
-$(BUILD)/test/%: $(BUILD)/test/%.o 
+$(BUILD)/test/%: $(BUILD)/test/%.o $(OBJECTS)
 	$(CXX_CMD) $(BOOST_TEST_FLAGS) $+ $(BOOST_TEST_LIB) -o $@
 
 define test-template
@@ -51,7 +51,7 @@ $(foreach test, $(TESTS), $(eval $(call test-template,$(test)) ) )
 
 .PHONY: clean 
 clean: 
-	rm -vf $(shell find $(BUILD) -type f)
+	rm -vf $(shell find $(BUILD) -type f -not -name .gitignore )
 
 
 -include $(DEPENDS)

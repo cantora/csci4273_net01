@@ -1,4 +1,6 @@
-#include "s_listener.h"
+#include "listener.h"
+
+using namespace net01;
 
 listener::listener(int socket, int backlog) : m_socket(socket), m_backlog(backlog) {}
 
@@ -12,12 +14,13 @@ listener::~listener() {
  *
  * return value: the number of connections accepted.
  */
-int listener::listen(int n_accepts) const {
+int listener::listen_and_accept(int n_accepts) {
 	struct sockaddr_in sin;
 	socklen_t len;
 	int new_sock, i;
 	on_accept_status_t status;
 
+	#error "move this out of this class"
 	/* wait for connection, then receive and print text */ 
 	if( listen(m_socket, m_backlog) != 0) {
 		throw errno;
@@ -35,5 +38,5 @@ int listener::listen(int n_accepts) const {
 		}
 	}	
 
-	return i + 1;
+	return i;
 }
