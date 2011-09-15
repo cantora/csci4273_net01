@@ -20,7 +20,7 @@ int listener::listen_and_accept(int n_accepts) {
 	int new_sock, i;
 	on_accept_status_t status;
 
-	#error "move this out of this class"
+	//#error "move this out of this class"
 	/* wait for connection, then receive and print text */ 
 	if( listen(m_socket, m_backlog) != 0) {
 		throw errno;
