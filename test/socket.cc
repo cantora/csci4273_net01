@@ -53,46 +53,56 @@ BOOST_AUTO_TEST_CASE(tcpsend)
 { 
 	char buf[1024];
 	const char *host = "localhost";
-	const char i_say[] = "hey hey hey\n";
-	const char u_say[] = "go go go\n";
+	const char i_say[] = "hey hey hey";
+	const char u_say[] = "go go go";
 
 	std::string nc_cmd;
 
 	nc_cmd.append("echo '");
-	//nc_cmd.append(u_say, 0, sizeof(u_say) - 2);
-	nc_cmd.append("' | nc -l -p 6543 &");
+	nc_cmd.append(u_say, 0, strlen(u_say));
+	nc_cmd.append("' | tr -d '\\n' | nc -l -p 6543 2>&1 > /dev/null &");
 
 	int s;
 	int len;
+	size_t sent, recd, total_recd;
  	struct sockaddr_in sin;
 	
 	sock::host_sin(host, 6543, &sin);
 
 	cout << "nc_cmd: " << nc_cmd << endl;
 
-	//system(nc_cmd.c_str());
+	system(nc_cmd.c_str());
 	sleep(1);
 	
 	s = sock::tcp_cx(&sin);
 
-	len = strlen(buf) + 1; 
-
-	if( send(s, buf, len, 0) < 0) {
+	if( (sent = send(s, buf, strlen(i_say), 0) ) < 0) {
 		perror("send");
 		BOOST_REQUIRE(false);
 	}
 
-	if( recvfrom(s, buf, 1023, 0, NULL, 0) < 0) {
+	BOOST_REQUIRE_EQUAL(sent, strlen(i_say));
+
+	total_recd = 0;
+	
+	if( (recd = recvfrom(s, (buf), 1023, 0, NULL, 0) ) < 0) {
 		perror("recvfrom");
 		BOOST_REQUIRE(false);
 	}
 
-	cout << "got response from nc (size = " << strlen(buf) << "):" << endl;
-	for(int i = 0; i < strlen(buf); i++) { printf("0x%02x ", buf[i]); }; cout << endl;
-	cout << "expected (size = " << sizeof(u_say) << "): " << endl;
+	total_recd = recd;
+	
+	cout << "got response from nc (size = " << total_recd << "):" << endl;
+	buf[total_recd] = 0x00;
+	for(int i = 0; i < total_recd; i++) { printf("0x%02x ", buf[i]); }; cout << endl;
+	cout << buf << endl;
+	cout << "expected (size = " << strlen(u_say) << "): " << endl;
 	for(int i = 0; i < strlen(u_say); i++) { printf("0x%02x ", u_say[i]); }; cout << endl;
+	cout << u_say << endl;
 
-	BOOST_REQUIRE_EQUAL(0, memcmp(u_say, buf, sizeof(u_say) ) );
+	BOOST_REQUIRE_EQUAL(total_recd, strlen(u_say));
+
+	BOOST_REQUIRE_EQUAL(0, memcmp(u_say, buf, strlen(u_say) ) );
 
 	close(s);
 } 

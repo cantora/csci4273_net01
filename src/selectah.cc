@@ -11,15 +11,23 @@ selectah::selectah() {
 selectah::~selectah() {}
 
 /*
- *
+ * add fd to the set of fds to track
+ * using select system call.
+ * dont pass a non-open fd
  */
-int selectah::add_rfd(int fd) {
+void selectah::add_rfd(int fd) {
 	m_rfds.insert(fd);
+}
+
+
+int selectah::remove_rfd(int fd) {
+	return m_rfds.erase(fd);
 }
 
 int selectah::rfd_set_size() const {
 	return m_rfds.size();
 }
+
 /*
  * n: n iterations
  * 		n < 1 => infinite loop
@@ -56,6 +64,11 @@ int selectah::select_fds(int n) {
 }
 
 
+/*
+ * turn our std::set container into a
+ * fd_set data type required to pass
+ * to the  select system call
+ */
 void selectah::rfd_set(fd_set *result) const {
 	std::set<int>::iterator it;
 
@@ -66,6 +79,11 @@ void selectah::rfd_set(fd_set *result) const {
 	}
 }
 
+/*
+ * return the fd which is the 
+ * highest numbered fd we 
+ * are tracking
+ */
 int selectah::high_rfd() const {
 	if(m_rfds.size() < 1) {
 		return 0;

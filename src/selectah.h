@@ -22,7 +22,8 @@ class selectah {
 
 		enum selectah_status_t {SEL_OK, SEL_STOP};
 
-		int add_rfd(int fd);
+		void add_rfd(int fd);
+		int remove_rfd(int fd);
 		int select_fds(int n);
 		int rfd_set_size() const;
 

@@ -41,3 +41,40 @@ int sock::tcp_cx(const struct sockaddr_in *host_addr) {
 	
 	return s; 
 }
+
+void sock::passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *sin_len) {
+	memset(sin, 0, *sin_len);
+	sin->sin_family = AF_INET;
+	sin->sin_addr.s_addr = INADDR_ANY;
+		
+	sin->sin_port = htons(port);
+
+}
+
+/*
+ * create a passive socket, bind it to sin,
+ * set it to listen mode, then return socket fd.
+ * sin/sin_len parameters are output parameters
+ * as well as input parameters, where the output
+ * value is the the address structure returned by bind.
+ */
+int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen) {
+	int s;
+	
+	assert(sin != NULL);
+	assert(sin_len != NULL);
+	
+	if( (s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) ) < 0 ) {
+		throw errno;
+	}
+	
+	if (bind(s, (struct sockaddr *)sin, *sin_len) < 0) {
+		throw errno;
+	}
+	
+	if(listen(s, qlen) < 0) {
+		throw errno;
+	}
+
+	return s;
+}

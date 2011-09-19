@@ -1,7 +1,8 @@
+.SECONDARY:
 
 DEFINES 		= 
 INCLUDES 		+= -iquote"./src" 
-#DBG			= -g
+DBG			= -g
 #OPTIMIZE		= -Os
 C_FLAGS 		= -Wall $(OPTIMIZE) $(DBG) -w $(DEFINES) $(INCLUDES)
 CXX_FLAGS		= $(C_FLAGS)

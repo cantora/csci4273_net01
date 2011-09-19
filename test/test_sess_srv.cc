@@ -15,3 +15,4 @@ BOOST_AUTO_TEST_CASE(construct) {
 	ss.add_rfd(56);
 	BOOST_REQUIRE_EQUAL(2, ss.rfd_set_size() );
 }
+
