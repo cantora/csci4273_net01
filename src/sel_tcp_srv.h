@@ -23,6 +23,8 @@ class sel_tcp_srv : public selectah {
 
 		virtual selectah::selectah_status_t on_rfds(const fd_set *rfd_set);
 		
+		const std::map<int, sock::sock_info_t> *sock_table() {return &m_sock_table; };
+
 	private:
 
 		const int m_listen_sock;

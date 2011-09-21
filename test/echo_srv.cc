@@ -25,13 +25,34 @@ class echo_srv : public sel_tcp_srv {
 	
 			if(bytes < 1) {
 				close_socket(socket);
+				cout << "closed socket " << socket << ", " << rfd_set_size() << " sockets left" << endl;
 			}
 	
 			return SEL_OK;
 		}
 	
-		size_t echo(int socket) {
-			return 0;
+		size_t echo(int socket)  {
+			char buf[32];
+			int bytes,sent;
+			const sock::sock_info_t *sinfo;
+
+			BOOST_REQUIRE(sock_table()->find(socket) != sock_table()->end() );
+
+			sinfo = &(*sock_table()->find(socket)).second;
+
+			BOOST_REQUIRE(sinfo != NULL);
+
+			if( (bytes = recvfrom(socket, buf, sizeof(buf), 0, NULL, NULL) ) < 0) {
+				throw errno;
+			}
+
+			if(bytes > 0) {
+				sent = send(socket, buf, bytes, 0);
+				cout << "echoed " << sent << " bytes to " << inet_ntoa(sinfo->sin.sin_addr) << ':' << ntohs(sinfo->sin.sin_port) << endl;
+				BOOST_REQUIRE_EQUAL(bytes, sent);
+			}
+			
+			return bytes;
 		}
 };
 

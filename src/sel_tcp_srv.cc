@@ -54,7 +54,7 @@ selectah::selectah_status_t sel_tcp_srv::accept_cx() {
 	int new_s;
 	struct sockaddr_in sin; 
 	socklen_t len = sizeof(sin);
-		
+	
 	if ( (new_s = accept(m_listen_sock, (struct sockaddr *)&sin, &len) ) < 0) { 
 		throw errno;
 	}
