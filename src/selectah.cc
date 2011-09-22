@@ -49,7 +49,7 @@ int selectah::select_fds(int n) {
 
 		n_fds = select(high_rfd()+1, &rfds, (fd_set *) 0, (fd_set *) 0, &timeout);
 
-		if(n_fds < 1) {
+		if(n_fds < 0) {
 			throw errno;
 		}
 		else if(n_fds == 0) {
@@ -58,6 +58,10 @@ int selectah::select_fds(int n) {
 		
 		/* if we are here we have fds to look at */
 		status = on_rfds(&rfds);
+
+		if(status == SEL_STOP) {
+			return i;
+		}
 	}
 
 	return i;

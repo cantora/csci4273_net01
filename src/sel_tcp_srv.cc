@@ -75,6 +75,7 @@ selectah::selectah_status_t sel_tcp_srv::accept_cx() {
 selectah::selectah_status_t sel_tcp_srv::on_rfds(const fd_set *rfd_set) {
 	std::set<int>::const_iterator it;
 	fd_set set;
+	selectah_status_t status = SEL_OK;
 
 	FD_COPY(rfd_set, &set);
 
@@ -89,7 +90,9 @@ selectah::selectah_status_t sel_tcp_srv::on_rfds(const fd_set *rfd_set) {
 				accept_cx();
 			}
 			else {
-				consume(*itcp);
+				if( (status = consume(*itcp) ) != SEL_OK) {
+					return status;
+				}
 			}
 		}
 	}
