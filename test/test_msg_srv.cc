@@ -51,8 +51,7 @@ class msg_srv : public sel_tcp_srv {
 			vector<string>::const_iterator itr;
 			
 			for(itr = random_vec.begin(); itr != random_vec.end(); itr++) {
-				//cout << (m_msgs[0] == *itr) << endl;
-				//BOOST_REQUIRE(find(m_msgs.begin(), m_msgs.end(), *itr) != m_msgs.end());				
+				BOOST_REQUIRE(find(m_msgs.begin(), m_msgs.end(), *itr) != m_msgs.end());				
 			}
 			
 		}
