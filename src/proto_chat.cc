@@ -15,12 +15,11 @@ using namespace net01;
  * stops reading from msg_istrm when it has sent max_msg_len bytes
  * return the number of bytes sent
  */
-int proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
-#error "fix this to return send status and fill &sent"
+proto_chat::send_status_t proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
 	char buf[32];
-	int sent, read, total_sent;
+	int bytes, read;
 	
-	total_sent = 0;
+	sent = 0;
 	assert(msg_istrm->good());
 
 	msg_istrm->readsome(buf, sizeof(buf) );
@@ -31,15 +30,15 @@ int proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
 		return 0;
 	}
 
-	if( (sent = send(socket, &REQ_SUBMIT, 1, 0)) != 1) {
+	if( (bytes = send(socket, &REQ_SUBMIT, 1, 0)) != 1) {
 		throw errno;
 	}
-	total_sent += sent;
+	sent += bytes;
 
 	while(read > 0) {
 
-		if((total_sent - 1) + read > MAX_MSG_LEN) {    /* truncate amount to send if we will
-			read = (MAX_MSG_LEN - (total_sent - 1) );   * exceed max message len
+		if( ((sent - 1) + read) > MAX_MSG_LEN) {    /* truncate amount to send if we will
+			read = (MAX_MSG_LEN - (sent - 1) );   * exceed max message len
 			assert(read >= 0);						    */
 	
 			if(read <= 0) {
@@ -49,15 +48,15 @@ int proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
 
 		gsub_bad_ascii(buf, read);
 
-		if( (sent = send(socket, buf, read, 0)) < 0) {
+		if( (bytes = send(socket, buf, read, 0)) < 0) {
 			throw errno;
 		}
 		
-		assert(sent == read);
-		total_sent += sent;
+		assert(bytes == read);
+		sent += bytes;
 
-		if(total_sent - 1 >= MAX_MSG_LEN) { /* truncate message if its too long */
-			assert((total_sent - 1) == MAX_MSG_LEN);
+		if( (sent - 1) >= MAX_MSG_LEN) { /* truncate message if its too long */
+			assert((sent - 1) == MAX_MSG_LEN);
 			break;
 		}
 
@@ -69,12 +68,12 @@ int proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
 		read = msg_istrm->gcount();
 	}
 
-	if( (sent = send(socket, &REQ_SUBMIT_END, 1, 0)) != 1) {
+	if( (bytes = send(socket, &REQ_SUBMIT_END, 1, 0)) != 1) {
 		throw errno;
 	}
-	total_sent += sent;
+	sent += bytes;
 
-	return total_sent;
+	return sent;
 }
 
 /*
@@ -87,6 +86,7 @@ int proto_chat::send_msg(int socket, auto_ptr<istream> &msg_istrm, int &sent) {
  * the return value informs whether the message is completed or not.
  */
 proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::auto_ptr<std::ostream> &msg_ostrm, int &received) {
+#error "problem here: checking received against msg max means received has to be cumulative across calls"
 	char buf[64];
 	int read;
 	

@@ -32,6 +32,7 @@ class selectah {
 		void rfd_set(fd_set *result) const;
 		
 		virtual selectah_status_t on_rfds(const fd_set *rfd_set) = 0;
+		virtual selectah_status_t process(int n) = 0;
 
 		/* file descriptors we want to wake up when readable */
 		std::set<int> m_rfds;

@@ -27,11 +27,13 @@ namespace proto_chat {
 	
 	static const char BAD_ASCII_BYTE = '?'; 
 	
-	enum recv_status_t { SND_DONE, SND_CLOSE }
+	enum send_status_t { SND_DONE, SND_CLOSE }
 	enum recv_status_t { RCV_DONE, RCV_CONT, RCV_MSG_MAX, RCV_CLOSE }
 
 	send_status_t send_msg(int socket, std::auto_ptr<std::istream> &msg_istrm, int &sent);
 	recv_status_t recv_msg(int socket, std::auto_ptr<std::ostream> &msg_ostrm, int &received);
+
+	char next_opcode(int socket, int &received);
 
 	int gsub_bad_ascii(char *buf, int size);
 	int sub_bad_ascii(char &c);

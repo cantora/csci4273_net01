@@ -44,6 +44,12 @@ int selectah::select_fds(int n) {
 		return 0;
  
 	for(i = 0; (n < 1) || (i < n); i++) {
+		status = process(i);
+
+		if(status == SEL_STOP) {
+			return i;
+		}
+
 		rfd_set(&rfds);
 		timeout = m_timeout;
 
