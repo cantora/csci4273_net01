@@ -1,5 +1,9 @@
 #include "sock.h"
 
+extern "C" {
+#include <fcntl.h>
+}
+
 using namespace net01;
 
 /* 
@@ -77,4 +81,21 @@ int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen
 	}
 
 	return s;
+}
+
+void sock::set_nonblocking(int socket)
+{
+	int opts;
+
+	opts = fcntl(socket,F_GETFL);
+	if (opts < 0) {
+		throw errno;
+	}
+
+	opts = (opts | O_NONBLOCK);
+	if (fcntl(socket,F_SETFL,opts) < 0) {
+		throw errno;
+	}
+
+	return;
 }

@@ -25,6 +25,8 @@ namespace sock {
 	void passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *sin_len);
 	int passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen);
 
+	void set_nonblocking(int socket);
+
 	enum sock_err {UNKNOWN_HOST};
 
 	class sock_info_t {

@@ -62,6 +62,8 @@ selectah::selectah_status_t sel_tcp_srv::accept_cx() {
 	//m_sock_table[new_s] = new sock::sock_info_t;
 	memcpy(&m_sock_table[new_s].sin, &sin, len);
 
+	sock::set_nonblocking(new_s);
+
 	add_rfd(new_s);	
 
 	return SEL_OK;

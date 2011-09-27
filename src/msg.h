@@ -14,15 +14,18 @@ class msg {
 		msg(const char *c_str) : m_data(c_str, m_mode) {}
 		msg(const msg &other) : m_data(other.m_data.str(), m_mode) {}
 		
-		void operator= (msg &other) { m_data.str(other.m_data.str()); }
+		void operator= (const msg &other) { m_data.str(other.m_data.str()); }
 
 		size_t size() const {return m_data.str().size(); }
 		std::auto_ptr<std::istream> istrm() const;
 
-		std::auto_ptr<std::ostream> ostrm(); // { return m_data;}
+		std::auto_ptr<std::ostream> ostrm();
 
 		bool operator== (const msg &other) const;
 		bool operator== (const std::string &str) const;
+
+		void clear() {m_data.str(""); }
+		std::string str() const { return m_data.str(); }
 
 	private:
 		std::stringbuf m_data;

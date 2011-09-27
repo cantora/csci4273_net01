@@ -37,3 +37,14 @@ BOOST_AUTO_TEST_CASE(tcplisten)
 	close(new_s); 
 	close(s);
 }
+
+
+
+/*
+const session_server::client *session_server::client(int socket) {
+	map<int, session_server::client>::const_iterator cli = m_clients.find(socket);
+	assert(cli != m_clients.end());
+
+	return &(*cli);
+}*/
+
