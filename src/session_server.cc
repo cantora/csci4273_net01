@@ -7,6 +7,7 @@ extern "C" {
 using namespace std;
 using namespace net01;
 
+
 /*
  * read in requests/messages from clients.
  * does not reply in this function. replies are in process
@@ -141,6 +142,9 @@ selectah::selectah_status_t session_server::respond_to_client(int socket) {
 
 		case proto_chat::REQ_EXIT :
 			close_client(socket);
+			break;
+	
+		case proto_chat::NOOP :
 			break;
 
 		default:

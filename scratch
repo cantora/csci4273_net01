@@ -48,3 +48,34 @@ const session_server::client *session_server::client(int socket) {
 	return &(*cli);
 }*/
 
+
+{
+	char c;
+	int count = 0;
+	int amt;
+	char buf[] = "asdf\nasdfasdf";
+
+	cout << "test client" << endl;
+
+	write(1, buf, 5);
+	read(1, buf, 5);
+	buf[6] = 0x00;
+
+	cout << buf << endl;
+}
+
+pollfd cinfd[1];
+	char cmd;
+	string str;
+	int fd_amt = 0;
+
+	cinfd[0].fd = fileno(stdin);
+	cinfd[0].events |= POLLIN;
+
+	while(1) {
+		if(fd_amt = poll(cinfd, 1, 1000) ) {
+			//cout << "poll " << fd_amt << endl;
+			if(cinfd[0].revents & POLLIN) {
+				exit(1);
+			}
+		}

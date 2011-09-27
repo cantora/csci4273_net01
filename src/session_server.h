@@ -3,6 +3,7 @@
 
 #include <map>
 #include <queue>
+//#include <iostream>
 
 #include "sel_tcp_srv.h"
 #include "proto_chat.h"
@@ -13,8 +14,7 @@ namespace net01 {
 
 class session_server : public sel_tcp_srv {
 	public:
-		session_server(std::string &name, int socket);
-		~session_server();
+		session_server(const std::string &name, int socket) : sel_tcp_srv(socket), m_name(name) {}
 
 	protected:
 		virtual selectah::selectah_status_t consume(int socket);	
@@ -69,6 +69,8 @@ class session_server : public sel_tcp_srv {
 
 		std::map<int, client> m_clients;
 		std::vector<chat_msg> m_msg_table;
+		std::string m_name;
+
 
 		selectah::selectah_status_t consume_msg(int socket);
 

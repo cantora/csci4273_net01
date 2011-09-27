@@ -1,5 +1,12 @@
 #include "sel_tcp_srv.h"
 
+#include <iostream>
+
+extern "C" {
+#include <arpa/inet.h>
+}
+
+using namespace std;
 using namespace net01;
 
 /*
@@ -66,6 +73,7 @@ selectah::selectah_status_t sel_tcp_srv::accept_cx() {
 
 	add_rfd(new_s);	
 
+	cout << "opened new connection to " << inet_ntoa(sin.sin_addr) << ":" << ntohs(sin.sin_port) << endl;
 	return SEL_OK;
 }
 
