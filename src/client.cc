@@ -1,6 +1,7 @@
 #include "client.h"
 
 #include "sock.h"
+#include "proto_coord.h"
 #include <cassert>
 
 using namespace std;
@@ -16,7 +17,7 @@ void client::loop() {
 char client::prompt() const {
 	string str;
 	char cmd;
-	cout << endl << "j->join, m->msg, p->poll, d->drop, e->exit: ";
+	cout << endl << "j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: ";
 	cin >> cmd;
 	
 	return cmd;
@@ -56,7 +57,7 @@ void client::check_input() {
 			break;
 
 		case START_CMD:
-			cout << "start" << endl;
+			do_start();
 			break;
 		
 		default:
@@ -66,6 +67,31 @@ void client::check_input() {
 	if(is_open() ) {
 		cout << "listening for messages. press enter for prompt..." << endl;
 	}
+}
+
+void client::do_start() {
+	string sess_name;
+	proto_coord::send_status_t status;
+
+	cout << "enter session name: ";
+	cin >> sess_name;
+
+	if(sess_name.size() < 1) {
+		return;
+	}
+	else if(sess_name.size() > 8) {
+		cout << "session name too long" << endl;
+		return;
+	}
+
+	status = proto_coord::start(m_udp_socket, &m_coord_sin, sizeof(m_coord_sin), sess_name.c_str(), sess_name.size() );
+	if(status == proto_coord::SND_ERR) {
+		cout << "session name must only contain characters a-z" << endl;
+		return;
+	}
+	
+	assert(status == proto_coord::SND_DONE);
+	cout << "started session " << sess_name << endl;
 }
 
 int client::milli_since_last_msg() {

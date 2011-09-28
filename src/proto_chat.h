@@ -10,8 +10,6 @@ extern "C" {
 namespace net01 {
 
 namespace proto_chat {
-	
-	
 
 	
 	//static const char REQ_JOIN = 0x8f; /* THIS IS IMPLICIT ON THE TCP CONNECT FROM THE CLIENT */

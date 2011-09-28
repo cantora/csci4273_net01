@@ -38,6 +38,12 @@ start_client: $(BUILD)/start_client.o $(OBJECTS)
 $(BUILD)/start_client.o: start_client.cc
 	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
 
+start_coord: $(BUILD)/start_coord.o $(OBJECTS)
+	$(CXX_CMD) $(DEP_FLAGS) $+ -o $@
+
+$(BUILD)/start_coord.o: start_coord.cc
+	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
+
 $(BUILD)/%.o: src/%.cc src/%.h
 	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
 

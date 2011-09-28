@@ -61,6 +61,7 @@ class client : public selectah {
 		void do_snd_msg();
 		void do_drop();
 		void do_poll();
+		void do_start();
 
 		void poll();
 		void join(const std::string &host, unsigned short port);
