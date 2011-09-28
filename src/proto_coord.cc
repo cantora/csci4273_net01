@@ -36,6 +36,35 @@ proto_coord::send_status_t proto_coord::send_sess_op(int socket, const struct so
 	return SND_DONE;
 }
 
+/*proto_coord::send_status_t proto_coord::send_term(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *token, int toklen) {
+	char buf[9];
+	int sent;
+
+	assert(namelen <= MAX_SESS_NAME_LEN);
+	assert(namelen > 0);
+	
+	if(!check_ascii_buf(name, namelen) ) {
+		return SND_ERR;
+	}
+	
+	buf[0] = opcode;
+	for(int i = 0; i < namelen; i++) {
+		buf[1+i] = name[i];
+	}
+
+	if( (sent = sendto(socket, buf, 1+namelen, 0, (const sockaddr *) sin, sinlen ) ) < 0) {
+		throw errno;
+	}
+
+	if(sent == 0) {
+		return SND_CLOSE;
+	}
+
+	assert(sent == 1+namelen);
+
+	return SND_DONE;
+}*/
+
 proto_coord::recv_status_t proto_coord::recv_sess_name(const char *msg, int msglen, char *name, int &namelen) {
 	assert(msg != NULL);
 	assert(name != NULL);

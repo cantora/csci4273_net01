@@ -19,12 +19,14 @@ namespace proto_coord {
 	static const char RPL_FIND = 0x92;
 	static const char REQ_START = 0x93;
 	static const char RPL_START = 0x94;
+	static const char REQ_TERM = 0x95;
 	
 	static const char RPL_ERR = 0xe0;  /* general server error */
 
 	static const char op_codes[] = {REQ_FIND, RPL_FIND, REQ_START, RPL_START, RPL_ERR};
 
 	static const int MAX_SESS_NAME_LEN = 8;
+	static const int TERM_TOKEN_LEN = 32;
 
 	static const char MIN_ASCII_BYTE = 0x61;
 	static const char MAX_ASCII_BYTE = 0x7a;
@@ -33,6 +35,8 @@ namespace proto_coord {
 	enum recv_status_t { RCV_DONE, RCV_CLOSE, RCV_ERR };
 
 	send_status_t send_sess_op(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *name, int namelen, char opcode);
+
+	//send_status_t send_term(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *token, int toklen);
 
 	recv_status_t recv_sess_name(const char *msg, int msglen, char *name, int &namelen);
 	recv_status_t recv_sess_port(const char *msg, int msglen, unsigned short &port);

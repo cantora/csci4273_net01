@@ -3,11 +3,13 @@
 #include "session_server.h"
 
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 using namespace net01;
 
-coordinator::coordinator(int udp_socket) : m_socket(udp_socket) {}
+coordinator::coordinator(int udp_socket, struct sockaddr_in sin) : m_socket(udp_socket), m_sin(sin) {}
 
 coordinator::~coordinator() {
 	close(m_socket);
@@ -58,8 +60,7 @@ coordinator::on_msg_status_t coordinator::on_msg(const char *buf, int len, struc
 			reply = start_session(buf, len);
 			if( (sent = sendto(m_socket, &reply, 1, 0, (const sockaddr *) &sin, sinlen ) ) < 0) {
 				throw errno;
-			}
-			
+			}			
 			break;
 
 		case proto_coord::REQ_FIND:
@@ -69,6 +70,9 @@ coordinator::on_msg_status_t coordinator::on_msg(const char *buf, int len, struc
 			}
 			break;
 		
+		case proto_coord::REQ_TERM:
+			term(buf, len);
+		
 		default:
 			cout << "unknown request " << hex << (int) buf[0] << endl;
 			break;
@@ -76,6 +80,35 @@ coordinator::on_msg_status_t coordinator::on_msg(const char *buf, int len, struc
 	}
 
 	return OM_OK;
+}
+
+void coordinator::term(const char *buf, int len) {
+	string tok;
+	map<string, session>::iterator itr;
+
+	cout << "terminate session server" << endl;
+
+	if(len != (32 + 1)) {
+		cout << "invalid termination message" << endl;
+		return;
+	}
+
+	tok.assign(buf+1, len-1);
+
+	for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++) {
+		if(itr->second.token == tok) {
+			break;
+		}
+	}
+
+	if(itr == m_sessions.end() ) {
+		cout << "could not match session with token" << endl;
+		return;
+	}
+
+	cout << "delete session " << itr->first << endl;
+
+	m_sessions.erase(itr);
 }
 
 int coordinator::find(const char *buf, int len, char *response, int &response_len) {
@@ -132,7 +165,7 @@ char coordinator::start_session(const char *buf, int len) {
 	string sess_name;
 	session sess;
 	struct sockaddr_in sess_sin;
-	int socket;
+	int tcp_socket, udp_socket;
 	socklen_t sess_sin_len = sizeof(sess_sin);
 	session_server *ss;
 	
@@ -155,8 +188,19 @@ char coordinator::start_session(const char *buf, int len) {
 	}
 
 	sock::passive_sin(0, &sess_sin, &sess_sin_len); 	
-	socket = sock::passive_tcp_sock(&sess_sin, &sess_sin_len, 20);
-	ss = new session_server(sess_name, socket);
+	tcp_socket = sock::passive_tcp_sock(&sess_sin, &sess_sin_len, 20);
+
+	srand(time(NULL) );
+
+	for(int i = 0; i < proto_coord::TERM_TOKEN_LEN; i++) {
+		sess.token.push_back((char) rand() );
+	}
+
+	if( (udp_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0) {
+		throw errno;
+	}
+
+	ss = new session_server(sess_name, tcp_socket, udp_socket, m_sin, sess.token);
 
 	sess.port = ntohs(sess_sin.sin_port);
 
@@ -165,7 +209,8 @@ char coordinator::start_session(const char *buf, int len) {
 	if(sess.pid < 0) {
 		cout << "could not create session" << endl;
 		delete ss;
-		close(socket);
+		close(tcp_socket);
+		close(udp_socket);
 
 		return proto_coord::RPL_ERR;	
 	}
@@ -181,7 +226,8 @@ char coordinator::start_session(const char *buf, int len) {
 	
 		cout << "close session server " << sess_name << endl;
 		delete ss;
-		close(socket);
+		close(tcp_socket);
+		close(udp_socket);
 	}
 	else {
 		m_sessions[sess_name] = sess;

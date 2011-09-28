@@ -5,6 +5,7 @@
 #include <queue>
 //#include <iostream>
 #include <cassert>
+#include <ctime>
 
 #include "sel_tcp_srv.h"
 #include "proto_chat.h"
@@ -15,9 +16,11 @@ namespace net01 {
 
 class session_server : public sel_tcp_srv {
 	public:
-		session_server(const std::string &name, int socket) : sel_tcp_srv(socket), m_name(name) {
+		session_server(const std::string &name, int socket, int udp_socket, struct sockaddr_in coord_sin, const std::string &token) : sel_tcp_srv(socket), m_name(name), m_udp_socket(udp_socket), m_coord_sin(coord_sin), m_token(token) {
 			m_timeout.tv_sec = 0;
-			m_timeout.tv_usec = 100000; //500 ms
+			m_timeout.tv_usec = 100000; //100 ms
+		
+			m_last_activity = time(NULL);
 		}
 
 	protected:
@@ -53,7 +56,7 @@ class session_server : public sel_tcp_srv {
 				int in_msg_recd;
 				msg in_msg;
 				uint32_t msg_id;
-					
+						
 				static const uint32_t NULL_MSG_ID = 0xffffffff;
 
 			private:
@@ -73,8 +76,13 @@ class session_server : public sel_tcp_srv {
 
 		std::map<int, client> m_clients;
 		std::vector<chat_msg> m_msg_table;
-		std::string m_name;
-
+		const std::string m_name;
+		const std::string m_token;
+		const int m_udp_socket;
+		const struct sockaddr_in m_coord_sin;
+			
+		time_t m_last_activity;
+		
 
 		selectah::selectah_status_t consume_msg(int socket);
 
@@ -89,25 +97,10 @@ class session_server : public sel_tcp_srv {
 		client::state_t rpl_get_next(int socket);
 		
 		client::state_t receive_msg_id(int socket);	
-		
+	
+		void self_terminate();		
 }; /* session_server */
 
 }; /* net01 */
 
 #endif /* SESSION_SERVER_H */
-
-
-/*
-void copy(const client &other) {
-					requests = other.requests;
-					in_msg = other.in_msg;
-
-					assert(other.in_msg_ostrm.get() == 0);
-					in_msg_ostrm.release();
-
-					assert(other.state != CLI_OK);
-					state = CLI_OK;
-				}
-				
-
-*/

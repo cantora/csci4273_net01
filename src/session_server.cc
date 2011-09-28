@@ -1,5 +1,6 @@
 #include "session_server.h"
 
+#include "proto_coord.h"
 #include <cassert>
 
 extern "C" {
@@ -19,7 +20,9 @@ selectah::selectah_status_t session_server::consume(int socket) {
 	socket_to_username(socket, username);
 	
 	assert(m_clients[socket].state == client::CLI_OK);
-		
+	
+	m_last_activity = time(NULL);
+	
 	/* if we arent currently doing anything useful */
 	if(m_clients[socket].request == proto_chat::NOOP) {
 		/* read in requests until no data
@@ -88,7 +91,9 @@ session_server::client::state_t session_server::receive_msg_id(int socket) {
 }
 
 selectah::selectah_status_t session_server::process(int n) {
-	
+	time_t t;
+	double diff;
+
 	map<int, client>::iterator cli, current;
 
 	for(cli = m_clients.begin(); cli != m_clients.end(); /* nothing */) {
@@ -97,10 +102,43 @@ selectah::selectah_status_t session_server::process(int n) {
 		cout.flush();
 	}
 
+	t = time(NULL);
+	diff = difftime(t, m_last_activity);
+	
+	if(diff > 60.0) {
+		self_terminate();
+	}
+
 	//cout << ".";
 	cout.flush();
 
 	return SEL_OK;
+}
+
+void session_server::self_terminate() {
+	string opcode;
+	string term_msg;
+	int sent;
+
+	opcode.push_back(proto_coord::REQ_TERM);
+	term_msg = opcode + m_token;
+	assert(term_msg.size() == proto_coord::TERM_TOKEN_LEN+1);
+
+	cout << "session " << m_name << " sending self-termination message" << endl;
+
+	sent = sendto(m_udp_socket, term_msg.c_str(), term_msg.size(), 0, (const sockaddr *) &m_coord_sin, sizeof(m_coord_sin) );
+	if(sent < 1) {
+		cout << "error while sending termination signal";
+		if(sent < 0) {
+			cout << ": " << strerror(errno);
+		}
+		
+		cout << endl;
+	}
+
+	cout << "goodbye from " << m_name << endl;
+
+	exit(0);
 }
 
 selectah::selectah_status_t session_server::respond_to_client(int socket) {

@@ -14,7 +14,7 @@ using namespace std;
 using namespace net01;
 
 void start_coord(struct sockaddr_in &sin, int coord_socket) {
-	coordinator coord(coord_socket);
+	coordinator coord(coord_socket, sin);
 
 	cout << "start coordinator on port " << ntohs(sin.sin_port) << endl;
 	
