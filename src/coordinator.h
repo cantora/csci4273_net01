@@ -1,6 +1,7 @@
 #ifndef COORDINATOR_H
 #define COORDINATOR_H
 
+#include <map>
 #include <cerrno>
 
 extern "C" {
@@ -27,8 +28,16 @@ class coordinator {
 
 	private:
 		on_msg_status_t on_msg(const char *buf, int len, struct sockaddr_in &sin, socklen_t &sinlen);
+		char start_session(const char *buf, int len, struct sockaddr_in &sin, socklen_t &sinlen);
+
+		class session {
+			public:
+				int pid;
+				unsigned short port;
+		};
 
 		const int m_socket;
+		std::map<std::string, session> m_sessions;
 
 }; /* coordinator */
 

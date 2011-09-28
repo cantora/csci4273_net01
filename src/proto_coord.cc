@@ -7,7 +7,7 @@
 using namespace std;
 using namespace net01;
 
-proto_coord::send_status_t proto_coord::start(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char* name, int namelen) {
+proto_coord::send_status_t proto_coord::send_sess_op(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char* name, int namelen, char opcode) {
 	char buf[9];
 	int sent;
 
@@ -18,7 +18,7 @@ proto_coord::send_status_t proto_coord::start(int socket, const struct sockaddr_
 		return SND_ERR;
 	}
 	
-	buf[0] = REQ_START;
+	buf[0] = opcode;
 	for(int i = 0; i < namelen; i++) {
 		buf[1+i] = name[i];
 	}
@@ -34,6 +34,27 @@ proto_coord::send_status_t proto_coord::start(int socket, const struct sockaddr_
 	assert(sent == 1+namelen);
 
 	return SND_DONE;
+}
+
+proto_coord::recv_status_t proto_coord::recv_sess_name(const char *msg, int msglen, char *name, int &namelen) {
+	assert(msg != NULL);
+	assert(name != NULL);
+	assert(msglen > 1);
+	
+	if(msglen > proto_coord::MAX_SESS_NAME_LEN + 1) {
+		msglen = proto_coord::MAX_SESS_NAME_LEN + 1;
+	}
+
+	namelen = msglen-1;
+	memcpy(name, msg+1, namelen); 
+	
+	//for(namelen = 0; namelen+1 < msglen; namelen++) {
+	//	name[namelen] = msg[namelen+1];
+	//} 	
+	
+	assert(namelen <= MAX_SESS_NAME_LEN);
+
+	return RCV_DONE;
 }
 
 bool proto_coord::check_ascii_buf(const char *buf, int buflen) {

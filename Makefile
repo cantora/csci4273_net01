@@ -64,6 +64,6 @@ $(foreach test, $(TESTS), $(eval $(call test-template,$(test)) ) )
 .PHONY: clean 
 clean: 
 	rm -vf $(shell find $(BUILD) -type f -not -name .gitignore )
-
+	rm -v start_client start_coord
 
 -include $(DEPENDS)

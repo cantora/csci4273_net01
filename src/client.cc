@@ -84,7 +84,7 @@ void client::do_start() {
 		return;
 	}
 
-	status = proto_coord::start(m_udp_socket, &m_coord_sin, sizeof(m_coord_sin), sess_name.c_str(), sess_name.size() );
+	status = proto_coord::send_sess_op(m_udp_socket, &m_coord_sin, sizeof(m_coord_sin), sess_name.c_str(), sess_name.size(), proto_coord::REQ_START );
 	if(status == proto_coord::SND_ERR) {
 		cout << "session name must only contain characters a-z" << endl;
 		return;

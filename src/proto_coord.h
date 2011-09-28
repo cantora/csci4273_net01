@@ -18,10 +18,11 @@ namespace proto_coord {
 	static const char REQ_FIND = 0x91;
 	static const char RPL_FIND = 0x92;
 	static const char REQ_START = 0x93;
-
+	static const char RPL_START = 0x94;
+	
 	static const char RPL_ERR = 0xe0;  /* general server error */
 
-	static const char op_codes[] = {REQ_FIND, RPL_FIND, REQ_START, RPL_ERR};
+	static const char op_codes[] = {REQ_FIND, RPL_FIND, REQ_START, RPL_START, RPL_ERR};
 
 	static const int MAX_SESS_NAME_LEN = 8;
 
@@ -29,8 +30,11 @@ namespace proto_coord {
 	static const char MAX_ASCII_BYTE = 0x7a;
 
 	enum send_status_t { SND_DONE, SND_CLOSE, SND_ERR };
+	enum recv_status_t { RCV_DONE, RCV_CLOSE, RCV_ERR };
 
-	send_status_t start(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *name, int namelen);
+	send_status_t send_sess_op(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *name, int namelen, char opcode);
+
+	recv_status_t recv_sess_name(const char *msg, int msglen, char *name, int &namelen);
 	
 	bool check_bad_ascii(char c);
 

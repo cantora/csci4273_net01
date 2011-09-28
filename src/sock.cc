@@ -67,10 +67,15 @@ void sock::passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *
  */
 int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen) {
 	int s;
-	
+	bool reread_sin = false;
+
 	assert(sin != NULL);
 	assert(sin_len != NULL);
 	
+	if(ntohs(sin->sin_port) == 0) {
+		reread_sin = true;
+	}
+
 	if( (s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) ) < 0 ) {
 		throw errno;
 	}
@@ -79,6 +84,13 @@ int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen
 		throw errno;
 	}
 	
+	if(reread_sin) {
+
+		if (getsockname(s, (struct sockaddr *)sin, (socklen_t *)sin_len) < 0) {
+			throw errno;
+		}
+	}
+
 	if(listen(s, qlen) < 0) {
 		throw errno;
 	}
