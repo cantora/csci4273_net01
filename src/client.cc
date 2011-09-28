@@ -53,7 +53,7 @@ void client::check_input() {
 			break;
 
 		case FIND_CMD:
-			cout << "find" << endl;
+			do_find();
 			break;
 
 		case START_CMD:
@@ -72,6 +72,8 @@ void client::check_input() {
 void client::do_start() {
 	string sess_name;
 	proto_coord::send_status_t status;
+	struct sockaddr_in sin;
+	socklen_t sinlen = sizeof(sin);
 
 	cout << "enter session name: ";
 	cin >> sess_name;
@@ -91,7 +93,85 @@ void client::do_start() {
 	}
 	
 	assert(status == proto_coord::SND_DONE);
-	cout << "started session " << sess_name << endl;
+
+	char response;
+	int msg_len;
+	sleep(3);
+	if( (msg_len = recvfrom(m_udp_socket, &response, 1, 0, (sockaddr *)&sin, &sinlen)) < 0) {
+		if(errno == EAGAIN) {
+			cout << "error starting session: response timeout" << endl;
+			return;
+		}
+		throw errno;
+	}
+	else if(msg_len == 0) {
+		cout << "error starting session: invalid response" << endl;
+		return;
+	}
+	
+	if(response == proto_coord::RPL_START) {
+		cout << "started session " << sess_name << endl;
+	}
+	else {
+		cout << "error starting session: session already exists" << endl;
+	}
+
+}
+
+void client::do_find() {
+	string sess_name;
+	proto_coord::send_status_t status;
+	struct sockaddr_in sin;
+	socklen_t sinlen = sizeof(sin);
+
+	cout << "enter session name: ";
+	cin >> sess_name;
+
+	if(sess_name.size() < 1) {
+		return;
+	}
+	else if(sess_name.size() > 8) {
+		cout << "session name too long" << endl;
+		return;
+	}
+
+	status = proto_coord::send_sess_op(m_udp_socket, &m_coord_sin, sizeof(m_coord_sin), sess_name.c_str(), sess_name.size(), proto_coord::REQ_FIND );
+	if(status == proto_coord::SND_ERR) {
+		cout << "session name must only contain characters a-z" << endl;
+		return;
+	}
+	
+	assert(status == proto_coord::SND_DONE);
+
+	char response[16];
+	int msg_len;
+	sleep(3);
+	if( (msg_len = recvfrom(m_udp_socket, response, 16, 0, (sockaddr *)&sin, &sinlen)) < 0) {
+		if(errno == EAGAIN) {
+			cout << "error starting session: response timeout" << endl;
+			return;
+		}
+		throw errno;
+	}
+	else if(msg_len == 0) {
+		cout << "error starting session: invalid response" << endl;
+		return;
+	}
+	
+	if(response[0] == proto_coord::RPL_FIND) {
+		uint16_t port = 0;
+		proto_coord::recv_status_t status = proto_coord::recv_sess_port(response, msg_len, port);
+
+		if(port == 0 || status != proto_coord::RCV_DONE) {
+			cout << "error finding session: invalid response" << endl;
+			return;
+		}
+
+		cout << "session " << sess_name << " at port: " << port << endl;
+	}
+	else {
+		cout << "could not find session " << sess_name << endl;
+	}
 }
 
 int client::milli_since_last_msg() {

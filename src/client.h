@@ -7,6 +7,7 @@
 #include "msg.h"
 #include "proto_chat.h"
 #include "selectah.h"
+#include "sock.h"
 
 extern "C" {
 #include <sys/time.h>
@@ -34,6 +35,8 @@ class client : public selectah {
 			m_msg_interval = 4000; //ms
 			gettimeofday(&m_last_poll, NULL);
 			gettimeofday(&m_last_msg_time, NULL);
+
+			sock::set_nonblocking(m_udp_socket);
 		}
 
 		~client() {
@@ -62,6 +65,7 @@ class client : public selectah {
 		void do_drop();
 		void do_poll();
 		void do_start();
+		void do_find();
 
 		void poll();
 		void join(const std::string &host, unsigned short port);

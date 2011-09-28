@@ -35,6 +35,7 @@ namespace proto_coord {
 	send_status_t send_sess_op(int socket, const struct sockaddr_in *sin, socklen_t sinlen, const char *name, int namelen, char opcode);
 
 	recv_status_t recv_sess_name(const char *msg, int msglen, char *name, int &namelen);
+	recv_status_t recv_sess_port(const char *msg, int msglen, unsigned short &port);
 	
 	bool check_bad_ascii(char c);
 

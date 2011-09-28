@@ -57,6 +57,22 @@ proto_coord::recv_status_t proto_coord::recv_sess_name(const char *msg, int msgl
 	return RCV_DONE;
 }
 
+proto_coord::recv_status_t proto_coord::recv_sess_port(const char *msg, int msglen, uint16_t  &port) {
+	assert(msg != NULL);
+	assert(msglen > 1);
+	
+	port = 0;
+	if(msglen < 3) {
+		return RCV_ERR;
+	}
+
+	memcpy((void *)&port, msg+1, sizeof(port));
+
+	port = ntohs(port);
+
+	return RCV_DONE;
+}
+
 bool proto_coord::check_ascii_buf(const char *buf, int buflen) {
 	for(int i = 0; i < buflen; i++) {
 		if(!check_bad_ascii(buf[i]) ) {

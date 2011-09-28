@@ -28,8 +28,9 @@ class coordinator {
 
 	private:
 		on_msg_status_t on_msg(const char *buf, int len, struct sockaddr_in &sin, socklen_t &sinlen);
-		char start_session(const char *buf, int len, struct sockaddr_in &sin, socklen_t &sinlen);
-
+		char start_session(const char *buf, int len);
+		int find(const char *buf, int len, char *response, int &response_len);
+	
 		class session {
 			public:
 				int pid;
