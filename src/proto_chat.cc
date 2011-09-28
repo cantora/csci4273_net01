@@ -15,11 +15,12 @@ using namespace net01;
  * stops reading from msg_istrm when it has sent max_msg_len bytes
  * return the number of bytes sent
  */
-proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, int &sent) {
+proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, uint32_t msg_id, int &sent) {
 	char buf[32];
 	int bytes, read;
+	int prefix_amt = 0;
 	send_status_t status = SND_DONE;
-
+	
 	sent = 0;
 	assert(msg_istrm.good());
 
@@ -30,9 +31,19 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, i
 	assert(read > 0 );
 
 	if( (bytes = send(socket, &MSG_START, 1, 0)) != 1) {
-		throw errno;
+		if(bytes == 0) {
+			return SND_CLOSE;
+		}	
+		assert(false);
 	}
 	sent += bytes;
+	prefix_amt += bytes;
+
+	if( send_msg_id(socket, msg_id) == SND_CLOSE) {
+		return SND_CLOSE;
+	} 
+	sent += 4;
+	prefix_amt += 4;
 
 	while(read > 0) {
 		//cout << "sent,read: " << sent << ", " << read << endl;
@@ -40,9 +51,9 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, i
 		/* truncate amount to send if we will
 		 * exceed max message len
 		 */
-		if( ((sent - 1) + read) > MAX_MSG_LEN) { 
+		if( ((sent - prefix_amt) + read) > MAX_MSG_LEN) { 
 			//cout << endl << "sent: " << sent << endl << "read: " << read << endl;
-			read = (MAX_MSG_LEN - (sent - 1) );
+			read = (MAX_MSG_LEN - (sent - prefix_amt) );
 			//cout << "new read: " << read << endl;
 			assert(read >= 0);
 	
@@ -67,9 +78,9 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, i
 		assert(bytes == read);
 		sent += bytes;
 		//cout << "sent: " << sent << endl;
-		if( (sent - 1) >= MAX_MSG_LEN) { /* truncate message if its too long */
+		if( (sent - prefix_amt) >= MAX_MSG_LEN) { /* truncate message if its too long */
 			//cout << endl << sent << endl;
-			assert((sent - 1) == MAX_MSG_LEN);
+			assert((sent - prefix_amt) == MAX_MSG_LEN);
 			status = SND_MSG_MAX;
 			break;
 		}
@@ -84,7 +95,10 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, i
 	}
 
 	if( (bytes = send(socket, &MSG_END, 1, 0)) != 1) {
-		throw errno;
+		if(bytes == 0) {
+			return SND_CLOSE;
+		}
+		assert(false);
 	}
 	sent += bytes;
 
@@ -102,15 +116,33 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, i
  * MAX_MSG_LEN amount of bytes. 
  * the return value informs whether the message is completed or not.
  */
-proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ostrm, int &received) {
+proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ostrm, uint32_t &msg_id, int &received) {
 	char buf[64];
 	int read;
 	bool next_char_is_msg_end = false;
 	bool truncated = false;
-
+	int prefix_size = sizeof(msg_id);
+	
+	//msg_id = 0;
 	/* dont initialize received because it has the amount received the last time this funciton was called */
 	//received = 0; 
 	assert(msg_ostrm.good());
+
+	if(received <= 0) {
+		assert(received == 0);
+		recv_status_t status = RCV_CONT;
+		int msgid_recd = 0;
+
+		while(status == RCV_CONT) {
+			status = recv_msg_id(socket, msg_id, msgid_recd);
+		}
+
+		if(status == RCV_CLOSE) {
+			return RCV_CLOSE;
+		}
+		assert(status == RCV_DONE);
+		received += prefix_size;
+	}
 
 	while(1) {
 		if( (read = recvfrom(socket, buf, sizeof(buf), 0, NULL, NULL)) < 0) {
@@ -125,8 +157,8 @@ proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ost
 			return RCV_CLOSE;
 		}
 		
-		if(received + read > MAX_MSG_LEN) {
-			read = MAX_MSG_LEN - received;
+		if(received + read - prefix_size > MAX_MSG_LEN) {
+			read = MAX_MSG_LEN + prefix_size - received;
 			//cout << "truncated read: " << read << endl;
 			
 			assert(read >= 0);
@@ -135,11 +167,6 @@ proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ost
 		}
 
 		for(int i = 0; i < read; i++) {
-			if(buf[i] == MSG_START) {
-				assert(received == 0);
-				continue;
-			}
-
 			if(buf[i] == MSG_END) {
 				return RCV_DONE;
 			}
@@ -152,7 +179,7 @@ proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ost
 		//cout << "recd: " << received << endl;
 
 		if(truncated) { //if( received >= MAX_MSG_LEN) {
-			assert(received == MAX_MSG_LEN);
+			assert(received - prefix_size == MAX_MSG_LEN);
 			
 			if(next_char_is_msg_end) {
 				return RCV_DONE;
@@ -161,7 +188,7 @@ proto_chat::recv_status_t proto_chat::recv_msg(int socket, std::ostream &msg_ost
 				return RCV_MSG_MAX;
 			}
 		}
-	}
+	} /* while(1) */
 
 	return RCV_CONT;
 }
@@ -201,6 +228,7 @@ bool proto_chat::test_byte_for_opcode(char code) {
 
 proto_chat::recv_status_t proto_chat::recv_opcode(int socket, char &code) { 
 	int read;
+	code = 0;
 
 	if( (read = recvfrom(socket, &code, 1, 0, NULL, NULL)) < 0) {
 		if(errno == EAGAIN) {
@@ -260,7 +288,7 @@ proto_chat::send_status_t proto_chat::send_msg_id(int socket, uint32_t msg_id) {
 proto_chat::recv_status_t proto_chat::recv_msg_id(int socket, uint32_t &msg_id, int &received) {
 	int read;
 
-	if( (read = recvfrom(socket, &msg_id, sizeof(msg_id), 0, NULL, NULL)) < 0) {
+	if( (read = recvfrom(socket, &msg_id+received, sizeof(msg_id), 0, NULL, NULL)) < 0) {
 		if(errno == EAGAIN) {
 			return RCV_CONT;
 		}

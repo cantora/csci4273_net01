@@ -92,7 +92,11 @@ selectah::selectah_status_t session_server::process(int n) {
 	for(cli = m_clients.begin(); cli != m_clients.end(); /* nothing */) {
 		current = cli++;
 		respond_to_client(current->first);
+		cout.flush();
 	}
+
+	cout << ".";
+	cout.flush();
 
 	return SEL_OK;
 }
@@ -166,7 +170,7 @@ void session_server::close_client(int socket) {
 }
 
 void session_server::handle_get_next(int socket) {
-	if(m_clients[socket].msg_id >= (m_msg_table.size() - 1) ) {
+	if(m_clients[socket].msg_id >= (m_msg_table.size()) ) {
 		if(proto_chat::send_opcode(socket, proto_chat::RPL_NO_NEW_MSG) == proto_chat::SND_CLOSE) {
 			m_clients[socket].state = client::CLI_CLOSE;
 		}
@@ -188,7 +192,7 @@ void session_server::handle_get_all(int socket) {
 	string username;
 	socket_to_username(socket, username);
 	
-	if(m_clients[socket].msg_id >= (m_msg_table.size() - 1) ) {
+	if(m_clients[socket].msg_id >= (m_msg_table.size()) ) {
 		/* dont send an op code response because we 
  		 * have been incrementing automatically
 		 */
@@ -215,19 +219,25 @@ void session_server::handle_get_all(int socket) {
 
 session_server::client::state_t session_server::rpl_get_next(int socket) {
 	proto_chat::send_status_t status;
-	int sent;
+	int sent = 0;
 	auto_ptr<istream> istrm;
 
 	string username;
 	socket_to_username(socket, username);
 	
 	/* first check that msg id sent is in a valid range */
-	assert(m_clients[socket].msg_id < (m_msg_table.size() - 1) );
+	assert(m_clients[socket].msg_id < (m_msg_table.size()) );
+	assert(m_clients[socket].msg_id >= 0);
 
-	/* if its in the right range, send back msg at index msg_id + 1 */
-	istrm = m_msg_table.at(m_clients[socket].msg_id + 1).m.istrm();
+	/* if its in the right range, send back msg at index msg_id + 1,
+	 * but really, since message ids start at 1, we actually reply with
+ 	 * the id at msg_id.
+	 * e.g. they have msg 0 (none at all) so we give them 1 (index 0) 
+	 * and tell them we just gave them msg 1
+	 */
+	istrm = m_msg_table.at(m_clients[socket].msg_id).m.istrm();
 
-	status = proto_chat::send_msg(socket, *istrm, sent);
+	status = proto_chat::send_msg(socket, *istrm, m_clients[socket].msg_id + 1, sent);
 	if(status == proto_chat::SND_CLOSE) {
 		return client::CLI_CLOSE;
 	}
@@ -249,18 +259,24 @@ selectah::selectah_status_t session_server::consume_msg(int socket) {
 		cout << "start receiving new message from  " << username << endl;
 		m_clients[socket].reset_in_msg();
 	}
-		
+	else {
+		cout << "continue reading message (recd " << m_clients[socket].in_msg_recd << ")" << endl;
+	}
+	
 	proto_chat::recv_status_t status;
-	status = proto_chat::recv_msg(socket, *(m_clients[socket].in_msg_ostrm), m_clients[socket].in_msg_recd);
+	uint32_t dummy;
+	status = proto_chat::recv_msg(socket, *(m_clients[socket].in_msg_ostrm), dummy, m_clients[socket].in_msg_recd);
 		
 	/* if we have the msg fully read in, copy it to the table */
 	if(status == proto_chat::RCV_DONE) {
 		m_msg_table.push_back(chat_msg(username, m_clients[socket].in_msg));
+		const string str = m_msg_table.back().m.str();
+
+		cout << "received (" << m_clients[socket].in_msg_recd << ") message from " << username << ": " << str << " (" << str.size() << ") " << endl;
+		
 		m_clients[socket].in_msg_ostrm.release();
 		m_clients[socket].state = client::CLI_OK;
-		m_clients[socket].request = proto_chat::NOOP;
-		
-		cout << "received message from " << username << ": " << m_msg_table.back().m.str() << endl;
+		m_clients[socket].request = proto_chat::NOOP;		
 	}
 	else if(status == proto_chat::RCV_CLOSE) {
 		m_clients[socket].state = client::CLI_CLOSE;
@@ -274,17 +290,19 @@ selectah::selectah_status_t session_server::consume_msg(int socket) {
 	}
 	else {
 		assert(status == proto_chat::RCV_CONT);
+		cout << "read " << m_clients[socket].in_msg_recd << " bytes from message" << endl;
+		cout << "message so far: \"" << m_clients[socket].in_msg.str() << '"' << endl;
 	}
 
 	return SEL_OK;
 }
 
 session_server::client::state_t session_server::get_request(int socket, char &opcode) {
-	char code = proto_chat::NOOP;
+	//char code = proto_chat::NOOP;
 	proto_chat::recv_status_t status;
 
-	while(code == proto_chat::NOOP) {
-		if( (status = proto_chat::recv_opcode(socket, code)) != proto_chat::RCV_DONE) {
+	while(opcode == proto_chat::NOOP) {
+		if( (status = proto_chat::recv_opcode(socket, opcode)) != proto_chat::RCV_DONE) {
 			if(status == proto_chat::RCV_CLOSE) {
 				return client::CLI_CLOSE;
 			}
@@ -293,7 +311,7 @@ session_server::client::state_t session_server::get_request(int socket, char &op
 			}
 			else if(status == proto_chat::RCV_CONT) {
 				/* there are no new requests, so use a noop as placeholder */
-				code = proto_chat::NOOP;
+				opcode = proto_chat::NOOP;
 				break;
 			}
 			else { /* freak out! */

@@ -8,14 +8,28 @@
 #include "proto_chat.h"
 #include "selectah.h"
 
+extern "C" {
+#include <sys/time.h>
+#include <unistd.h>
+}
+
+/*extern "C" {
+#include <signal.h>
+todo: handler sigpipe
+}*/
+
 namespace net01 {
 
 class client : public selectah {
 	public:
 		client() {
 			m_timeout.tv_sec = 0;
-			m_timeout.tv_usec = 100000;
+			m_timeout.tv_usec = 1000;
 			add_rfd(0);
+			m_poll_interval = 1000; //ms
+			m_msg_interval = 4000; //ms
+			gettimeofday(&m_last_poll, NULL);
+			gettimeofday(&m_last_msg_time, NULL);
 		}
 
 		~client() {
@@ -31,26 +45,33 @@ class client : public selectah {
 		selectah::selectah_status_t on_rfds(const fd_set *rfd_set);
 
 	private:
+
+		int milli_since_last_msg();
+		int milli_since_last_poll();
 		void check_input();
 		void close_channel();
 		char prompt() const;
 		void do_join();
 		void do_snd_msg();
 		void do_drop();
+		void do_poll();
 
+		void poll();
 		void join(const std::string &host, unsigned short port);
-		void send_msg(std::istream &istrm);
-		bool is_open() const { return (m_channel.get() != 0); }
+		int send_msg(std::istream &istrm);
+		void receive_responses();
+		bool is_open() const { return (m_channel.get() != 0) && (m_channel->socket_ok); }
 		void consume_msg();
 
 		static const char SND_MSG_CMD = 'm';
 		static const char JOIN_CMD = 'j';
 		static const char DROP_CMD = 'd';
 		static const char EXIT_CMD = 'e';
+		static const char POLL_CMD = 'p';
 				
 		class channel {
 			public:
-				channel(int sock) : socket(sock), last_msg_id(0) {}
+				channel(int sock) : socket(sock), last_msg_id(0), socket_ok(true) {}
 				~channel() { close(socket); }
 
 				void reset_in_msg() {
@@ -64,11 +85,15 @@ class client : public selectah {
 				msg incoming;
 				std::auto_ptr<std::ostream> in_msg_ostrm;
 				int in_msg_recd;
-
+				bool socket_ok;
 		
 		}; /* channel */
 
 		std::auto_ptr<channel> m_channel;
+		int m_poll_interval;
+		int m_msg_interval;
+		struct timeval m_last_msg_time;
+		struct timeval m_last_poll;
 		
 }; /* client */
 

@@ -79,3 +79,18 @@ pollfd cinfd[1];
 				exit(1);
 			}
 		}
+
+
+status = proto_chat::RCV_CONT;
+			while(status == proto_chat::RCV_CONT) {
+				status = proto_chat::recv_msg(m_channel->socket, *(m_channel->in_msg_ostrm), m_channel->in_msg_recd);
+			}
+
+			if(status == proto_chat::RCV_CLOSE) {
+				close_channel();
+				break;
+			}
+			
+			assert(status == proto_chat::RCV_DONE);
+			cout << "new msg: " << m_channel.incoming.str() << endl;;			
+			

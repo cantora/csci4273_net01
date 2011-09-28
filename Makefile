@@ -33,10 +33,10 @@ OUTPUT = $(BUILD)/$(MAIN_TARGET)
 all: $(OUTPUT)
 
 
-$(BUILD)/%.o: src/%.cc
+$(BUILD)/%.o: src/%.cc src/%.h
 	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
 
-$(BUILD)/test/%.o: test/%.cc 
+$(BUILD)/test/%.o: test/%.cc $(OBJECTS)
 	$(CXX_CMD) $(DEP_FLAGS) $(BOOST_TEST_FLAGS) $(BOOST_TEST_INCLUDE) -c $< -o $@
 
 $(BUILD)/test/%: $(BUILD)/test/%.o $(OBJECTS)

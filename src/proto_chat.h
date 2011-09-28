@@ -30,7 +30,7 @@ namespace proto_chat {
 
 	static const char op_codes[] = {REQ_GET_NEXT, REQ_GET_ALL, REQ_EXIT, MSG_START, MSG_END, RPL_ERR, RPL_ERR_MSG_TOO_LONG};
 
-	static const int MAX_MSG_LEN = 510; /* hopefully will work out to 512 bytes w/ op codes */
+	static const int MAX_MSG_LEN = 506; /* hopefully will work out to 512 bytes w/ op codes */
 
 	static const char MIN_ASCII_BYTE = 0x20;
 	static const char MAX_ASCII_BYTE = 0x7e;
@@ -40,8 +40,8 @@ namespace proto_chat {
 	enum send_status_t { SND_DONE, SND_CLOSE, SND_MSG_MAX };
 	enum recv_status_t { RCV_ERR = -1, RCV_DONE = 0, RCV_CONT, RCV_MSG_MAX, RCV_CLOSE};
 
-	send_status_t send_msg(int socket, std::istream &msg_istrm, int &sent);
-	recv_status_t recv_msg(int socket, std::ostream &msg_ostrm, int &received);
+	send_status_t send_msg(int socket, std::istream &msg_istrm, uint32_t msg_id, int &sent);
+	recv_status_t recv_msg(int socket, std::ostream &msg_ostrm, uint32_t &msg_id, int &received);
 
 	send_status_t send_opcode(int socket, char code);
 	recv_status_t recv_opcode(int socket, char &code);

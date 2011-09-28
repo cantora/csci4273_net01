@@ -14,7 +14,10 @@ namespace net01 {
 
 class session_server : public sel_tcp_srv {
 	public:
-		session_server(const std::string &name, int socket) : sel_tcp_srv(socket), m_name(name) {}
+		session_server(const std::string &name, int socket) : sel_tcp_srv(socket), m_name(name) {
+			m_timeout.tv_sec = 0;
+			m_timeout.tv_usec = 100000; //500 ms
+		}
 
 	protected:
 		virtual selectah::selectah_status_t consume(int socket);	
@@ -28,7 +31,7 @@ class session_server : public sel_tcp_srv {
 				client(const client &other) 
 				 : request(other.request), in_msg(other.in_msg), state(CLI_OK),
 				 in_msg_recd(0), msg_id(other.msg_id) {
-
+					assert(other.in_msg_recd == 0);
 					assert(other.in_msg_ostrm.get() == 0);
 					assert(other.state == CLI_OK);
 
