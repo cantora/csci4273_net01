@@ -1,5 +1,8 @@
 #include "sock.h"
 
+#include <cassert>
+#include <cstring>
+
 extern "C" {
 #include <fcntl.h>
 }
@@ -77,6 +80,23 @@ int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen
 	}
 	
 	if(listen(s, qlen) < 0) {
+		throw errno;
+	}
+
+	return s;
+}
+
+int sock::bound_udp_sock(struct sockaddr_in *sin, socklen_t *sin_len) {
+	int s;
+
+	assert(sin != NULL);
+	assert(sin_len != NULL);
+
+	if( (s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0) {
+		throw errno;
+	}
+
+	if(bind(s, (const sockaddr *)sin, *sin_len) < 0) {
 		throw errno;
 	}
 

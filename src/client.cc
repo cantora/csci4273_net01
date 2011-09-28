@@ -1,6 +1,7 @@
 #include "client.h"
 
 #include "sock.h"
+#include <cassert>
 
 using namespace std;
 using namespace net01;
@@ -16,14 +17,8 @@ char client::prompt() const {
 	string str;
 	char cmd;
 	cout << endl << "j->join, m->msg, p->poll, d->drop, e->exit: ";
-	cin >> cmd; //getline(cin, str);
+	cin >> cmd;
 	
-	/*if(str.size() < 1) {
-		return 0x00;
-	}*/
-
-	//cmd = str[0]; 
-
 	return cmd;
 }
 
@@ -56,6 +51,14 @@ void client::check_input() {
 			do_poll();
 			break;
 
+		case FIND_CMD:
+			cout << "find" << endl;
+			break;
+
+		case START_CMD:
+			cout << "start" << endl;
+			break;
+		
 		default:
 			/* do nothing */;
 	} /*switch*/
@@ -120,9 +123,11 @@ selectah::selectah_status_t client::process(int n) {
 
 selectah::selectah_status_t client::on_rfds(const fd_set *rfd_set) {
 	fd_set set;
-
+	
 	//cout << "on rfds" << endl;
-	FD_COPY(rfd_set, &set);
+	//FD_COPY(rfd_set, &set); /* this doenst work on linux? */
+	//memcpy(&set, rfd_set, sizeof(set) ); /* doesnt work either? */
+	set = *rfd_set;
 
 	if(is_open() ) {
 		if(FD_ISSET(m_channel->socket, &set) != 0) {
@@ -130,10 +135,8 @@ selectah::selectah_status_t client::on_rfds(const fd_set *rfd_set) {
 		}
 	}
 
-	if(FD_ISSET(0, &set) != 0) {
+	if(FD_ISSET(STDIN_FILENO, &set) != 0) {
 		//cout << "check input" << endl;
-		//string str;
-		//getline(cin, str); //absorb the newline that cause stdin to have data
 		check_input();
 	}
 }

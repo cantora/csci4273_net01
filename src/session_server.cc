@@ -1,5 +1,7 @@
 #include "session_server.h"
 
+#include <cassert>
+
 extern "C" {
 #include <arpa/inet.h>
 }
@@ -95,7 +97,7 @@ selectah::selectah_status_t session_server::process(int n) {
 		cout.flush();
 	}
 
-	cout << ".";
+	//cout << ".";
 	cout.flush();
 
 	return SEL_OK;

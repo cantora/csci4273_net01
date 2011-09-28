@@ -11,6 +11,10 @@
 extern "C" {
 #include <sys/time.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 }
 
 /*extern "C" {
@@ -22,10 +26,10 @@ namespace net01 {
 
 class client : public selectah {
 	public:
-		client() {
+		client(struct sockaddr_in coord_sin, int udp_socket) : m_coord_sin(coord_sin), m_udp_socket(udp_socket) {
 			m_timeout.tv_sec = 0;
 			m_timeout.tv_usec = 1000;
-			add_rfd(0);
+			add_rfd(STDIN_FILENO);
 			m_poll_interval = 1000; //ms
 			m_msg_interval = 4000; //ms
 			gettimeofday(&m_last_poll, NULL);
@@ -36,6 +40,8 @@ class client : public selectah {
 			if(is_open() ) {
 				close_channel();
 			}
+			
+			close(m_udp_socket);
 		}
 
 		void loop();
@@ -68,6 +74,8 @@ class client : public selectah {
 		static const char DROP_CMD = 'd';
 		static const char EXIT_CMD = 'e';
 		static const char POLL_CMD = 'p';
+		static const char FIND_CMD = 'f';
+		static const char START_CMD = 's';
 				
 		class channel {
 			public:
@@ -94,6 +102,9 @@ class client : public selectah {
 		int m_msg_interval;
 		struct timeval m_last_msg_time;
 		struct timeval m_last_poll;
+
+		const struct sockaddr_in m_coord_sin;
+		const int m_udp_socket;
 		
 }; /* client */
 

@@ -56,9 +56,10 @@ int selectah::select_fds(int n) {
 		rfd_set(&rfds);
 		timeout = m_timeout;
 		
-		//cout << "select fds" << endl;
+		//cout << "select fds" << endl; cout.flush();
 		n_fds = select(high_rfd()+1, &rfds, (fd_set *) 0, (fd_set *) 0, &timeout);
-		//cout << "dont selecting fds" << endl;
+		//cout << "done selecting fds" << endl; cout.flush();
+		
 
 		if(n_fds < 0) {
 			throw errno;

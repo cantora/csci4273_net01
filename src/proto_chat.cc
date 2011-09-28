@@ -2,9 +2,12 @@
 
 #include <cerrno>
 #include <iostream>
+#include <cassert>
+
 extern "C" {
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 }
 
 using namespace std;

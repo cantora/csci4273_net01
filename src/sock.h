@@ -24,6 +24,7 @@ namespace sock {
 
 	void passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *sin_len);
 	int passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen);
+	int bound_udp_sock(struct sockaddr_in *sin, socklen_t *sin_len);
 
 	void set_nonblocking(int socket);
 

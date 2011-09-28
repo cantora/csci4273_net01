@@ -1,6 +1,7 @@
 #include "sel_tcp_srv.h"
 
 #include <iostream>
+#include <cassert>
 
 extern "C" {
 #include <arpa/inet.h>
@@ -87,7 +88,9 @@ selectah::selectah_status_t sel_tcp_srv::on_rfds(const fd_set *rfd_set) {
 	fd_set set;
 	selectah_status_t status = SEL_OK;
 
-	FD_COPY(rfd_set, &set);
+	//FD_COPY(rfd_set, &set); /* apparently doesnt work on linux */
+	//memcpy(&set, &rfd_set, sizeof(set) );
+	set = *rfd_set;
 
 	for(it = m_rfds.begin(); it != m_rfds.end();) {
 		/* copy it and then increment.

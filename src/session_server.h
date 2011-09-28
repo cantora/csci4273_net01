@@ -4,6 +4,7 @@
 #include <map>
 #include <queue>
 //#include <iostream>
+#include <cassert>
 
 #include "sel_tcp_srv.h"
 #include "proto_chat.h"

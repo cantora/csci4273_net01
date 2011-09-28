@@ -13,7 +13,7 @@ MAIN_TARGET		:= net01
 BUILD 			= ./build
 
 BOOST_TEST_FLAGS	= -L/opt/local/lib
-BOOST_TEST_LIB		= -lboost_test_exec_monitor
+#BOOST_TEST_LIB		= -lboost_test_exec_monitor
 BOOST_TEST_INCLUDE	= -I/opt/local/include
 
 OBJECTS 		:= $(patsubst %.cc, $(BUILD)/%.o, $(notdir $(wildcard ./src/*.cc) ) )
@@ -32,6 +32,11 @@ OUTPUT = $(BUILD)/$(MAIN_TARGET)
 .PHONY: all
 all: $(OUTPUT)
 
+start_client: $(BUILD)/start_client.o $(OBJECTS)
+	$(CXX_CMD) $(DEP_FLAGS) $+ -o $@
+
+$(BUILD)/start_client.o: start_client.cc
+	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
 
 $(BUILD)/%.o: src/%.cc src/%.h
 	$(CXX_CMD) $(DEP_FLAGS) -c $< -o $@
