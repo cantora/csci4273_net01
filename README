@@ -1,0 +1,88 @@
+NAME:
+anthony cantor
+
+STATUS: as far as i can tell, i am implementing all the required behaviour for client, session server and
+	coordinator.
+ 
+	known issues: 
+		-the client doesnt validate input, so entering in obviously bad values for
+		 port numbers etc will surely cause problems
+		
+		-there is some instability with the client<->session server relationship when
+		 the session server is set to self terminate after 1 minute of idling. the 
+		 problem seems to be that somehow the client doesnt notice the server timed
+		 out closed, and then tries to write to a dead socket. if you encounter these
+		 problems you can comment out the SESSION_SERVER_TIMEOUT -D flag in the makefile
+		 and the session server will stop self terminating.
+
+
+USAGE:
+
+in the directory of the makefile, run:
+ > make
+
+this will create ./start_client and ./start_coord
+
+these files are small main() programs that instantiate objects of net01::client (./src/client.cc)
+and net01::coordinator (./src/coordinator.cc) respectively.
+
+usage for start_coord:
+
+./start_coord PORT
+
+PORT is the port number for the coordinator to listen on. it binds to ADDR_ANY so should accept from
+any source.
+
+usage for start_client:
+
+./start_client PORT [HOST]
+
+PORT is the port of the coordinator, and HOST is the address of the coordinator. HOST defaults to localhost.
+NOTE: all connections for chat sessions from client ask for only a port as an argument. the host address of 
+the chat server is assumed to be that of the coordinator (the HOST address passed in).
+
+in case the instructions given by the client are not clear, 
+the file EXAMPLE_USAGE shows the output of a client session
+
+design notes:
+
+       the coordinator creates an object of net01::session_server when it gets a start command. 
+       it forks and calls session_server.select_fds, which runs select on the listen socket and any
+       client sockets. it does not exec after the fork.
+
+       the client will explain the user interface when started
+
+brief explanation of files in ./src:
+
+	msg: a class that session server uses to store messages it has received. using iostreams for reading and writing.
+
+	proto_chat: namespace of helper functions and protocol codes used to communicate between chat session and client. this code is used heavily by the client and session server
+
+	selectah: abstract class that manages a set of file descriptors, and runs select on them. client and sel_tcp_server both inherit from this.
+
+	sel_tcp_srv: abstract class for accepting and managing tcp sockets. session server inherits this.
+
+	proto_coord: namespace of helper functions and protocol codes used to communicate with coordinator
+
+	sock: namespace of helper functions relating to working with sockets
+
+
+notes on session server design:
+	the general idea here is to implement the callback functions from sel_tcp_srv and selectah
+	which are process, and consume.
+	
+	process is called every time select finishes blocking, and is used generally as a timer to do things
+	that need to happen at certain intervals, like responding to clients. so essentially this function
+	is the code that RESPONDS to clients. responding is mainly just sending errors back to the client or
+	sending messages the client has asked for. 
+
+	consume is called with an argument of 'int socket', which is a socket select has marked as 'read-ready'.
+	this function focuses on reading incoming client REQUESTS. it parses out requests and reads in messages. 
+	it saves requests in class variables, structs, etc... for the process function (mentioned above) to 
+	respond to when it gets called.
+
+	
+	
+
+
+

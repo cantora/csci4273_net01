@@ -5,10 +5,11 @@ INCLUDES 		+= -iquote"./src"
 DBG			= -g
 #OPTIMIZE		= -Os
 C_FLAGS 		= -Wall $(OPTIMIZE) $(DBG) -w $(DEFINES) $(INCLUDES)
+C_FLAGS			+= -DSESSION_SERVER_TIMEOUT
 CXX_FLAGS		= $(C_FLAGS)
 CXX_CMD			= g++ $(CXX_FLAGS)
 
-MAIN_TARGET		:= net01
+
 
 BUILD 			= ./build
 
@@ -27,10 +28,8 @@ TEST_OUTPUTS	= $(foreach test, $(TESTS), $(BUILD)/test/$(test))
 
 default: all
 
-OUTPUT = $(BUILD)/$(MAIN_TARGET)
-
 .PHONY: all
-all: $(OUTPUT)
+all: start_coord start_client
 
 start_client: $(BUILD)/start_client.o $(OBJECTS)
 	$(CXX_CMD) $(DEP_FLAGS) $+ -o $@

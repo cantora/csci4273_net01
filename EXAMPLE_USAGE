@@ -1,0 +1,58 @@
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: s
+enter session name: asdfasdf
+started session asdfasdf
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: f
+enter session name: asdfasdf
+session asdfasdf at port: 56516
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: j
+enter port: 56516
+join 127.0.0.1:56516
+joined channel
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: m
+enter message: asdf qwer asdf qwer
+sent message "asdf qwer asdf qwer "
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: m
+enter message: ljkasdfjldsljkdfsl ds  sdjkladfsjkladfsjkl
+sent message "ljkasdfjldsljkdfsl ds  sdjkladfsjkladfsjkl "
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: m
+enter message: ohsf oshfs osh sfohf soh sfohfsoh fs
+sent message "ohsf oshfs osh sfohf soh sfohfsoh fs"
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: m
+enter message:  sljf f fsljfsl slj fsjl sf
+sent message " sljf f fsljfsl slj fsjl sf"
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: m
+enter message:  asdjkldfs dfsjkldfslksdfa
+sent message " asdjkldfs dfsjkldfslksdfa"
+listening for messages. press enter for prompt...
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: p
+poll for msgs greater than 0
+listening for messages. press enter for prompt...
+1: asdf qwer asdf qwer
+2: ljkasdfjldsljkdfsl ds  sdjkladfsjkladfsjkl
+3: ohsf oshfs osh sfohf soh sfohfsoh fs
+4:  sljf f fsljfsl slj fsjl sf
+5:  asdjkldfs dfsjkldfslksdfa
+
+
+j->join, m->msg, p->poll, d->drop, f->find, s->start, e->exit: e
+exit

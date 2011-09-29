@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <iostream>
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 using namespace net01;

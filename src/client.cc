@@ -346,11 +346,9 @@ void client::consume_msg() {
 }
 
 void client::do_join() {
-	string host = "localhost";
+	string host(inet_ntoa(m_coord_sin.sin_addr) );
 	unsigned short port;
 
-	//cout << "enter host: ";
-	//cin >> host;
 	cout << "enter port: ";
 	cin >> port;
 

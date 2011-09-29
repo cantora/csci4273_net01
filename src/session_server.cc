@@ -102,6 +102,7 @@ selectah::selectah_status_t session_server::process(int n) {
 		cout.flush();
 	}
 
+#ifdef SESSION_SERVER_TIMEOUT
 	t = time(NULL);
 	diff = difftime(t, m_last_activity);
 	
@@ -109,6 +110,7 @@ selectah::selectah_status_t session_server::process(int n) {
 		self_terminate();
 		return SEL_STOP;
 	}
+#endif
 
 	//cout << ".";
 	cout.flush();
