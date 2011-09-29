@@ -23,6 +23,11 @@ class session_server : public sel_tcp_srv {
 			m_last_activity = time(NULL);
 		}
 
+		~session_server() {
+			std::cout << "goodbye from " << m_name << std::endl;
+			close(m_udp_socket);
+		}
+
 	protected:
 		virtual selectah::selectah_status_t consume(int socket);	
 		virtual selectah_status_t process(int n);

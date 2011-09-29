@@ -72,7 +72,8 @@ coordinator::on_msg_status_t coordinator::on_msg(const char *buf, int len, struc
 		
 		case proto_coord::REQ_TERM:
 			term(buf, len);
-		
+			break;
+
 		default:
 			cout << "unknown request " << hex << (int) buf[0] << endl;
 			break;
@@ -97,6 +98,7 @@ void coordinator::term(const char *buf, int len) {
 
 	for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++) {
 		if(itr->second.token == tok) {
+			cout << "found session with token" << endl;
 			break;
 		}
 	}
@@ -193,7 +195,11 @@ char coordinator::start_session(const char *buf, int len) {
 	srand(time(NULL) );
 
 	for(int i = 0; i < proto_coord::TERM_TOKEN_LEN; i++) {
-		sess.token.push_back((char) rand() );
+		char c = (char) rand();
+		if(c == 0x00) {
+			c = 0x34; // just replace null bytes with anything else
+		}
+		sess.token.push_back(c);
 	}
 
 	if( (udp_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0) {
@@ -222,16 +228,19 @@ char coordinator::start_session(const char *buf, int len) {
 		} /*try*/
 		catch(int e) {
 			cout << "exception from session server: " << strerror(e) << endl;
+			close(tcp_socket);
+			close(udp_socket);
 		}
 	
 		cout << "close session server " << sess_name << endl;
 		delete ss;
-		close(tcp_socket);
-		close(udp_socket);
+		exit(0);
 	}
 	else {
 		m_sessions[sess_name] = sess;
 		cout << "created session process for " << sess_name << " at " << sess.pid << endl;
+		close(tcp_socket);
+		close(udp_socket);
 		return proto_coord::RPL_START;
 	}
 }

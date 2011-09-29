@@ -107,6 +107,7 @@ selectah::selectah_status_t session_server::process(int n) {
 	
 	if(diff > 60.0) {
 		self_terminate();
+		return SEL_STOP;
 	}
 
 	//cout << ".";
@@ -136,9 +137,8 @@ void session_server::self_terminate() {
 		cout << endl;
 	}
 
-	cout << "goodbye from " << m_name << endl;
+	cout << "sent termination request" << endl;
 
-	exit(0);
 }
 
 selectah::selectah_status_t session_server::respond_to_client(int socket) {
