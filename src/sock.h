@@ -23,8 +23,12 @@ namespace sock {
 	int tcp_cx(const struct sockaddr_in *host_addr);
 
 	void passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *sin_len);
+	void passive_sin(unsigned short port, struct sockaddr_in *sin);
 	int passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen);
-	int bound_udp_sock(struct sockaddr_in *sin, socklen_t *sin_len);
+
+	int bound_udp_sock(const struct sockaddr_in *sin, const socklen_t *sin_len); /* deprecated */
+
+	int bound_udp_socket(struct sockaddr_in *sin);
 
 	void set_nonblocking(int socket);
 

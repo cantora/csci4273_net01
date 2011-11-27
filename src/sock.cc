@@ -58,6 +58,14 @@ void sock::passive_sin(unsigned short port, struct sockaddr_in *sin, socklen_t *
 
 }
 
+void sock::passive_sin(unsigned short port, struct sockaddr_in *sin) {
+	memset(sin, 0, sizeof(sockaddr_in) );
+	sin->sin_family = AF_INET;
+	sin->sin_addr.s_addr = INADDR_ANY;
+		
+	sin->sin_port = htons(port);
+}
+
 /*
  * create a passive socket, bind it to sin,
  * set it to listen mode, then return socket fd.
@@ -98,7 +106,7 @@ int sock::passive_tcp_sock(struct sockaddr_in *sin, socklen_t *sin_len, int qlen
 	return s;
 }
 
-int sock::bound_udp_sock(struct sockaddr_in *sin, socklen_t *sin_len) {
+int sock::bound_udp_sock(const struct sockaddr_in *sin, const socklen_t *sin_len) {
 	int s;
 
 	assert(sin != NULL);
@@ -112,6 +120,34 @@ int sock::bound_udp_sock(struct sockaddr_in *sin, socklen_t *sin_len) {
 		throw errno;
 	}
 
+	return s;
+}
+
+int sock::bound_udp_socket(struct sockaddr_in *sin) {
+	int s;
+	socklen_t sinlen = sizeof(struct sockaddr_in);
+	bool reread_sin = false;
+
+	assert(sin != NULL);
+
+	if(ntohs(sin->sin_port) == 0) {
+		reread_sin = true;
+	}
+
+	if( (s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0) {
+		throw errno;
+	}
+
+	if(bind(s, (const sockaddr *)sin, sinlen) < 0) {
+		throw errno;
+	}
+
+	if(reread_sin) {
+		if (getsockname(s, (struct sockaddr *)sin, &sinlen) < 0) {
+			throw errno;
+		}
+	}
+	
 	return s;
 }
 
