@@ -72,19 +72,21 @@ selectah::selectah_status_t session_server::consume(int socket) {
 }
 
 session_server::client::state_t session_server::receive_msg_id(int socket) {
+	uint32_t msg_id;
 	int recd = 0;
 	proto_chat::recv_status_t status = proto_chat::RCV_CONT;
 	string username;
 	socket_to_username(socket, username);
 	
 	while(status == proto_chat::RCV_CONT) {
-		status = proto_chat::recv_msg_id(socket, m_clients[socket].msg_id, recd);
+		status = proto_chat::recv_msg_id(socket, msg_id, recd);
 	}
 
 	if(status == proto_chat::RCV_CLOSE) {
 		return client::CLI_CLOSE;
 	}
-
+	
+	m_clients[socket].msg_id = msg_id;
 	cout << "received message id " << m_clients[socket].msg_id << " from " << username << endl;
 		
 	return client::CLI_OK;
