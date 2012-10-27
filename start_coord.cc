@@ -47,8 +47,14 @@ int main(int argc, char *argv[]) {
 		cout << strerror(e) << endl;
 		return 1;
 	}
-	
-	s = sock::bound_udp_sock(&coord_sin, &slen);
+
+	try {	
+		s = sock::bound_udp_sock(&coord_sin, &slen);
+	} 
+	catch (int e) {
+		cout << "error binding udp socket: " << strerror(e) << endl;
+		return 1;
+	}
 
 	start_coord(coord_sin, s);
 
