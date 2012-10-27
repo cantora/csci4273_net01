@@ -2,10 +2,11 @@
 
 DEFINES 		= 
 INCLUDES 		+= -iquote"./src" 
-DBG			= -g
-#OPTIMIZE		= -Os
+#DBG			= -g
+OPTIMIZE		= -g
 C_FLAGS 		= -Wall $(OPTIMIZE) $(DBG) -w $(DEFINES) $(INCLUDES)
-C_FLAGS			+= -DSESSION_SERVER_TIMEOUT
+#C_FLAGS			+= -DSESSION_SERVER_TIMEOUT
+C_FLAGS			+= -m32
 CXX_FLAGS		= $(C_FLAGS)
 CXX_CMD			= g++ $(CXX_FLAGS)
 
