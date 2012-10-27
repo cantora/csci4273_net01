@@ -26,7 +26,16 @@ namespace proto_chat {
 	static const char RPL_ERR = 0xe0;  /* general server error */
 	static const char RPL_ERR_MSG_TOO_LONG = 0xe1;  /* message too long */
 
-	static const char op_codes[] = {REQ_GET_NEXT, REQ_GET_ALL, REQ_EXIT, MSG_START, MSG_END, RPL_ERR, RPL_ERR_MSG_TOO_LONG};
+	static const char op_codes[] = {
+		REQ_GET_NEXT, 
+		REQ_GET_ALL, 
+		REQ_EXIT, 
+		MSG_START, 
+		MSG_END, 
+		RPL_ERR, 
+		RPL_ERR_MSG_TOO_LONG,
+		RPL_NO_NEW_MSG
+	};
 
 	static const int MAX_MSG_LEN = 506; /* hopefully will work out to 512 bytes w/ op codes */
 

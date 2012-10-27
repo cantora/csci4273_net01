@@ -69,7 +69,13 @@ proto_chat::send_status_t proto_chat::send_msg(int socket, istream &msg_istrm, u
 		gsub_bad_ascii(buf, read);
 
 		if( (bytes = send(socket, buf, read, 0)) < 0) {
-			throw errno;
+			switch(errno) {
+			case EPIPE : 
+				return SND_CLOSE;
+				break;
+			default : 
+				throw errno;
+			}
 		}
 		
 		if(bytes == 0) {
@@ -259,7 +265,13 @@ proto_chat::send_status_t proto_chat::send_opcode(int socket, char code) {
 	assert(test_byte_for_opcode(code) );
 		
 	if( (sent = send(socket, &code, 1, 0)) < 0) {
-		throw errno;
+		switch(errno) {
+		case EPIPE : 
+			return SND_CLOSE;
+			break;
+		default : 
+			throw errno;
+		}
 	}
 	
 	if(sent == 0) {
@@ -274,7 +286,13 @@ proto_chat::send_status_t proto_chat::send_msg_id(int socket, uint32_t msg_id) {
 	int nwo_msg_id = htonl(msg_id);
 			
 	if( (sent = send(socket, (char *) &nwo_msg_id, sizeof(nwo_msg_id), 0)) < 0) {
-		throw errno;
+		switch(errno) {
+		case EPIPE : 
+			return SND_CLOSE;
+			break;
+		default : 
+			throw errno;
+		}
 	}
 	
 	if(sent == 0) {
